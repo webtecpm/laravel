@@ -19,18 +19,34 @@ Route::get('/about', function () {
 // Shorthand way to write View routes...
 Route::view('/contact', 'contact');
 
-// Route Resource usage to connect to a dedicated controller....
-Route::resource('jobs', JobController::class, [
+// Route Resource usage to connect to a dedicated controller... using 'only' and 'except' conditions
+Route::resource('yjobs', JobController::class, [
     // 'except' => ['index']
     // 'only' => ['index', 'show', 'create', 'store', 'update', 'destroy']
-]);
+])->only(['index', 'show']);
+Route::resource('yjobs', JobController::class)->except(['index', 'show'])->middleware('auth');
+
+// Auth using middleware on Routes
+Route::get('/jobs', [JobController::class, 'index']);
+Route::get('/jobs/create', [JobController::class, 'create']);
+Route::post('/jobs', [JobController::class, 'store'])->middleware('auth');
+Route::get('/jobs/{job}', [JobController::class, 'show']);
+
+// Route::get('/jobs/{job}/edit', [JobController::class, 'edit'])->middleware(['auth', 'can:edit-post,job']);
+Route::get('/jobs/{job}/edit', [JobController::class, 'edit'])
+    ->middleware('auth')
+    ->can('edit', 'job'); // same as above
+
+Route::patch('/jobs/{job}', [JobController::class, 'update'])->middleware('auth');
+Route::delete('/jobs/{job}', [JobController::class, 'destroy'])->middleware('auth');
 
 //Auth
 Route::get('/register', [RegisteredUserController::class, 'create']);
 Route::post('/register', [RegisteredUserController::class, 'store']);
 
-Route:: get('/login', [SessionController::class, 'index']);
-Route:: post('/login', [SessionController::class, 'create']);
+Route:: get('/login', [SessionController::class, 'create'])->name('login'); // named-route for middleware to work
+Route:: post('/login', [SessionController::class, 'store']);
+Route:: post('/logout', [SessionController::class, 'destroy']);
 
 
 // Routes grouping for same controller....
